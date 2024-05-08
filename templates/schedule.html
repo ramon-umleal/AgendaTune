@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agendar Aula</title>
+</head>
+<body>
+    <h1>Agendar Aula</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('schedule') }}">
+        {{ form.hidden_tag() }}
+        <p>Horário: {{ form.time() }}</p>
+        <p>Disciplina: {{ form.subject() }}</p>
+        <p>Arquivo MP3: {{ form.audio() }}</p>
+        <p>Tempo de Execução (segundos): {{ form.duration() }}</p>
+        <p><button type="submit">Agendar</button></p>
+    </form>
+</body>
+</html>

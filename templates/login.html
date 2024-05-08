@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag() }}
+        <p>Usuário: {{ form.username() }}</p>
+        <p>Senha: {{ form.password() }}</p>
+        <p>{{ form.remember() }} Lembrar-me</p>
+        <p><button type="submit">Login</button></p>
+    </form>
+</body>
+</html>
