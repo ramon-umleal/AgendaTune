@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, ValidationError
+from wtforms.validators import DataRequired, Length, EqualTo
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import User, db
-from forms import LoginForm, RegisterForm
+from formularios.forms import LoginForm, RegisterForm
+
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456789'
@@ -48,22 +53,16 @@ def dashboard():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            flash('Usuário já existe!', 'error')
-            return redirect(url_for('register'))
-
-        new_user = User(username=username, password=generate_password_hash(password))
+        hashed_password = generate_password_hash(form.password.data)
+        new_user = User(username=form.username.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-
-        flash('Usuário criado com sucesso! Faça login para acessar.', 'success')
+        flash('Usuário criado com sucesso!', 'success')
         return redirect(url_for('login'))
-    
     return render_template('register.html', form=form)
 
+
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(host='0.0.0.0', port=3001, debug=True)

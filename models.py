@@ -10,6 +10,21 @@ class User(db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+    @property
+    def is_authenticated(self):
+        return True  
+
+    @property
+    def is_active(self):
+        return True  
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.String(20), nullable=False)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,13 +8,14 @@
 <body>
     <h1>Register</h1>
     <form action="{{ url_for('register') }}" method="post">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+        {{ form.hidden_tag() }}
+        {{ form.username.label }} {{ form.username }}
         <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+        {{ form.password.label }} {{ form.password }}
         <br>
-        <button type="submit">Register</button>
+        {{ form.confirm_password.label }} {{ form.confirm_password }}
+        <br>
+        {{ form.submit }}
     </form>
 </body>
 </html>
