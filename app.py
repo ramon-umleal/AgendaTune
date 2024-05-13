@@ -1,9 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, Schedule, db
-from forms import LoginForm, ScheduleForm
-import os
+from models import User, db
+from forms import LoginForm, RegisterForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456789'
@@ -28,10 +27,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if check_password_hash(user.password, form.password.data):
-                login_user(user, remember=form.remember.data)
-                return redirect(url_for('dashboard'))
+        if user and check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            return redirect(url_for('dashboard'))
         flash('Usuário ou senha incorretos', 'error')
     return render_template('login.html', form=form)
 
@@ -46,15 +44,26 @@ def logout():
 def dashboard():
     return render_template('dashboard.html')
 
-@app.route('/schedule', methods=['GET', 'POST'])
-@login_required
-def schedule():
-    form = ScheduleForm()
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegisterForm()
     if form.validate_on_submit():
-        # Salvar o agendamento no banco de dados
-        flash('Agendamento criado com sucesso', 'success')
-        return redirect(url_for('schedule'))
-    return render_template('schedule.html', form=form)
+        username = form.username.data
+        password = form.password.data
+
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Usuário já existe!', 'error')
+            return redirect(url_for('register'))
+
+        new_user = User(username=username, password=generate_password_hash(password))
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Usuário criado com sucesso! Faça login para acessar.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=3001, debug=True)
