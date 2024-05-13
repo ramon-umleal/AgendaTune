@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Intervalos</title>
+</head>
+<body>
+    <h1>Cadastrar Intervalos das Aulas</h1>
+    <form action="{{ url_for('cadastrar_intervalos') }}" method="post" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        {{ form.day.label }} {{ form.day }}
+        <br>
+        {{ form.start_time.label }} {{ form.start_time }}
+        <br>
+        {{ form.end_time.label }} {{ form.end_time }}
+        <br>
+        {{ form.audio_file.label }} {{ form.audio_file }}
+        <br>
+        <button type="submit">Salvar</button>
+    </form>
+
+    <h2>Agendas Diárias</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Dia</th>
+                <th>Horário de Início</th>
+                <th>Horário de Término</th>
+                <th>Áudio</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agenda in agendas %}
+            <tr>
+                <td>{{ translate_day(agenda.day) }}</td>
+                <td>{{ agenda.start_time }}</td>
+                <td>{{ agenda.end_time }}</td>
+                <td>{{ agenda.audio_file }}</td>
+                <td>
+                    <a href="#">Editar</a> |
+                    <a href="#">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

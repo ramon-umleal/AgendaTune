@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length, EqualTo
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, db
-from formularios.forms import LoginForm, RegisterForm
+from models import User, db, Schedule
+from formularios.forms import LoginForm, RegisterForm, CadastrarIntervalosForm
 
 
 
@@ -14,10 +15,13 @@ app.config['SECRET_KEY'] = '123456789'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+migrate = Migrate(app, db)
+
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -60,6 +64,34 @@ def register():
         flash('Usuário criado com sucesso!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
+
+@app.route('/cadastrar_intervalos', methods=['GET', 'POST'])
+def cadastrar_intervalos():
+    form = CadastrarIntervalosForm()
+    if form.validate_on_submit():
+        agenda = Schedule(
+            day=form.day.data,
+            start_time=form.start_time.data,
+            end_time=form.end_time.data,
+            audio_file=form.audio_file.data.filename if form.audio_file.data else None
+        )
+        db.session.add(agenda)
+        db.session.commit()
+        flash('Intervalo cadastrado com sucesso!', 'success')
+        return redirect(url_for('cadastrar_intervalos'))
+    agendas = Schedule.query.all()
+    return render_template('cadastrarintervalos.html', form=form, agendas=agendas, translate_day=translate_day)
+
+
+def translate_day(day):
+    days_translation = {
+        'Monday': 'Segunda-feira',
+        'Tuesday': 'Terça-feira',
+        'Wednesday': 'Quarta-feira',
+        'Thursday': 'Quinta-feira',
+        'Friday': 'Sexta-feira'
+    }
+    return days_translation.get(day, day)  #tradução
 
 
 if __name__ == '__main__':

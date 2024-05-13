@@ -27,10 +27,12 @@ class User(db.Model):
 
 class Schedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.String(20), nullable=False)
-    subject = db.Column(db.String(100), nullable=False)
+    day = db.Column(db.String(20), nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
     audio_file = db.Column(db.String(100), nullable=True)
-    duration = db.Column(db.Integer, nullable=False)
+    duration = db.Column(db.Integer, default=10)
+
 
     def __repr__(self):
         return f'<Schedule {self.time} - {self.subject}>'
