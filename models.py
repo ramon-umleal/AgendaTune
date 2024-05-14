@@ -30,9 +30,9 @@ class Schedule(db.Model):
     day = db.Column(db.String(20), nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    audio_file = db.Column(db.String(100), nullable=True)
-    duration = db.Column(db.Integer, default=10)
-
+    audio_filename = db.Column(db.String(100), nullable=True)  # Nome do arquivo de áudio
+    audio_path = db.Column(db.String(200), nullable=True)  # Caminho completo do arquivo de áudio
+    duration = db.Column(db.Integer, default=10) 
 
     def __repr__(self):
         return f'<Schedule {self.time} - {self.subject}>'
