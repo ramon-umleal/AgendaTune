@@ -1,5 +1,6 @@
 import os
 from flask_migrate import Migrate
+from sqlalchemy.sql.expression import text
 from flask_wtf import FlaskForm
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required
@@ -45,11 +46,6 @@ def login():
         flash('Usuário ou senha incorretos', 'error')
     return render_template('login.html', form=form)
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
 
 @app.route('/dashboard')
 @login_required
@@ -112,6 +108,38 @@ def translate_day(day):
     }
     return days_translation.get(day, day)  #tradução
 
+@app.route('/editar_intervalo/<int:agenda_id>', methods=['POST'])
+def editar_intervalo(agenda_id):
+    if request.method == 'POST':
+        agenda = Schedule.query.get(agenda_id)
+        form = CadastrarIntervalosForm(obj=agenda)
+        if request.method == 'POST' and form.validate():
+            form.populate_obj(agenda)
+            db.session.commit()
+            flash('Intervalo editado com sucesso!', 'success')
+            return redirect(url_for('cadastrar_intervalos'))
+        return render_template('editar_intervalo.html', form=form, agenda=agenda)
+
+@app.route('/excluir_intervalo/<int:agenda_id>', methods=['POST', 'DELETE'])
+def excluir_intervalo(agenda_id):
+    if request.method in ['POST', 'DELETE']:
+        agenda = Schedule.query.get(agenda_id)
+        if agenda:
+            #db.session.delete(agenda)
+            delete_query = text(str(Schedule.query.filter_by(id=agenda_id).delete()))
+            print(delete_query)
+            db.session.commit()
+            flash('Intervalo excluído com sucesso!', 'success')
+        else:
+            flash('Intervalo não encontrado.', 'error')
+    return redirect(url_for('cadastrar_intervalos'))
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     with app.app_context():
