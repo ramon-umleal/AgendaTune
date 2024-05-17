@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Intervalo</title>
+</head>
+<body>
+    <h1>Editar Intervalo</h1>
+    <form action="{{ url_for('editar_intervalo', agenda_id=agenda.id) }}" method="post">
+        {{ form.hidden_tag() }}
+        <p>{{ form.day.label }}: {{ form.day }}</p>
+        <p>{{ form.start_time.label }}: {{ form.start_time }}</p>
+        <p>{{ form.end_time.label }}: {{ form.end_time }}</p>
+        <p>{{ form.audio_file.label }}: {{ form.audio_file }}</p>
+        <button type="submit">Salvar</button>
+    </form>
+</body>
+</html>

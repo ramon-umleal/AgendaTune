@@ -39,7 +39,7 @@
                 <td>{{ agenda.end_time }}</td>
                 <td>{{ agenda.audio_filename }}</td>
                 <td>
-                    <form action="{{ url_for('editar_intervalo', agenda_id=agenda.id) }}" method="post" class="editar-form">
+                    <form id="editar-form-{{ agenda.id }}" action="{{ url_for('editar_intervalo', agenda_id=agenda.id) }}" method="post" class="editar-form">
                         {{ form.hidden_tag() }}
                         <input type="hidden" name="_method" value="EDITAR">
                         <button type="submit" class="btn btn-danger">Editar</button>
@@ -55,5 +55,6 @@
             {% endfor %}
         </tbody>
     </table>
+    
 </body>
 </html>

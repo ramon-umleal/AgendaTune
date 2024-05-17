@@ -6,3 +6,5 @@ WTForms==2.3.3
 flask_sqlalchemy
 Flask-Login==0.5.0
 Flask-Migrate
+pygame
+schedule

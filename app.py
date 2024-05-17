@@ -1,5 +1,12 @@
 import os
+import threading
+import time
+import pygame
+import schedule
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 from flask_migrate import Migrate
+from werkzeug.utils import secure_filename
 from sqlalchemy.sql.expression import text
 from flask_wtf import FlaskForm
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -21,7 +28,13 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 migrate = Migrate(app, db)
 
-db.init_app(app)
+pygame.mixer.init()
+ALLOWED_EXTENSIONS = {'mp3'}
+
+#db.init_app(app)
+db = SQLAlchemy(app)
+
+# Inicializa o sistema de login
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
@@ -64,6 +77,9 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/cadastrar_intervalos', methods=['GET', 'POST'])
 def cadastrar_intervalos():
     form = CadastrarIntervalosForm()
@@ -73,8 +89,8 @@ def cadastrar_intervalos():
         end_time = form.end_time.data
         audio_file = request.files['audio_file']
 
-        # Verifica se foi enviado um arquivo de áudio
-        if audio_file:
+        # Verifica se foi enviado um arquivo de áudio e se é um arquivo permitido
+        if audio_file and allowed_file(audio_file.filename):
             # Salva o arquivo de áudio na pasta "audio" na raiz do seu programa
             filename = secure_filename(audio_file.filename)
             audio_path = os.path.join(app.config['UPLOAD_FOLDER'], 'audio', filename)
@@ -134,6 +150,24 @@ def excluir_intervalo(agenda_id):
             flash('Intervalo não encontrado.', 'error')
     return redirect(url_for('cadastrar_intervalos'))
 
+def check_schedule():
+    # Verifica a hora atual
+    now = datetime.now().time()
+    current_time = now.strftime("%H:%M:%S")
+    print("Verificando agenda...")
+    print("Hora atual:", current_time)
+
+    # Consulta o banco de dados para verificar se há agendamentos
+    schedules = Schedule.query.all()
+    print("Agendamentos encontrados:", schedules)
+
+    for schedule in schedules:
+        if schedule.start_time.strftime("%H:%M:%S") == current_time:
+            # Reproduz o áudio associado ao agendamento
+            print("Hora do agendamento encontrada:", schedule.start_time.strftime("%H:%M:%S"))
+            play_audio(schedule.audio_path)
+
+    print("Verificação da agenda concluída.")
 
 @app.route('/logout')
 @login_required
