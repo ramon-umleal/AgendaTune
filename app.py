@@ -14,11 +14,8 @@ from flask_login import LoginManager, login_user, logout_user, login_required
 from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length, EqualTo
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 from models import User, db, Schedule
 from formularios.forms import LoginForm, RegisterForm, CadastrarIntervalosForm
-
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456789'
@@ -31,14 +28,10 @@ migrate = Migrate(app, db)
 pygame.mixer.init()
 ALLOWED_EXTENSIONS = {'mp3'}
 
-#db.init_app(app)
-db = SQLAlchemy(app)
-
-# Inicializa o sistema de login
+db.init_app(app)
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -58,7 +51,6 @@ def login():
             return redirect(url_for('dashboard'))
         flash('Usuário ou senha incorretos', 'error')
     return render_template('login.html', form=form)
-
 
 @app.route('/dashboard')
 @login_required
@@ -120,9 +112,11 @@ def translate_day(day):
         'Tuesday': 'Terça-feira',
         'Wednesday': 'Quarta-feira',
         'Thursday': 'Quinta-feira',
-        'Friday': 'Sexta-feira'
+        'Friday': 'Sexta-feira',
+        'Saturday': 'Sábado',
+        'Sunday': 'Domingo'
     }
-    return days_translation.get(day, day)  #tradução
+    return days_translation.get(day, day)  # tradução
 
 @app.route('/editar_intervalo/<int:agenda_id>', methods=['POST'])
 def editar_intervalo(agenda_id):
@@ -141,9 +135,7 @@ def excluir_intervalo(agenda_id):
     if request.method in ['POST', 'DELETE']:
         agenda = Schedule.query.get(agenda_id)
         if agenda:
-            #db.session.delete(agenda)
-            delete_query = text(str(Schedule.query.filter_by(id=agenda_id).delete()))
-            print(delete_query)
+            db.session.delete(agenda)
             db.session.commit()
             flash('Intervalo excluído com sucesso!', 'success')
         else:
@@ -151,23 +143,35 @@ def excluir_intervalo(agenda_id):
     return redirect(url_for('cadastrar_intervalos'))
 
 def check_schedule():
-    # Verifica a hora atual
-    now = datetime.now().time()
-    current_time = now.strftime("%H:%M:%S")
-    print("Verificando agenda...")
-    print("Hora atual:", current_time)
+    with app.app_context():
+        while True:
+            # Verifica a hora atual
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            current_day = now.strftime("%A")  # Obtém o dia da semana atual
+            print("Verificando agenda...")
+            print("Hora atual:", current_time)
+            print("Dia da semana atual:", current_day)
 
-    # Consulta o banco de dados para verificar se há agendamentos
-    schedules = Schedule.query.all()
-    print("Agendamentos encontrados:", schedules)
+            # Consulta o banco de dados para verificar se há agendamentos
+            schedules = Schedule.query.all()
+            for schedule in schedules:
+                schedule_day = translate_day(schedule.day)  # Traduz o dia agendado
+                if schedule_day == current_day and schedule.start_time.strftime("%H:%M:%S") == current_time:
+                    # Reproduz o áudio associado ao agendamento
+                    print("Hora do agendamento encontrada:", schedule.start_time.strftime("%H:%M:%S"))
+                    print("Reproduzindo áudio:", schedule.audio_path)
+                    play_audio(schedule.audio_path)
 
-    for schedule in schedules:
-        if schedule.start_time.strftime("%H:%M:%S") == current_time:
-            # Reproduz o áudio associado ao agendamento
-            print("Hora do agendamento encontrada:", schedule.start_time.strftime("%H:%M:%S"))
-            play_audio(schedule.audio_path)
+            time.sleep(30)  # Aguarda 30 segundos antes de verificar novamente
 
-    print("Verificação da agenda concluída.")
+# Inicia a thread para verificar o agendamento
+schedule_thread = threading.Thread(target=check_schedule)
+schedule_thread.start()
+
+def play_audio(audio_path):
+    pygame.mixer.music.load(audio_path)
+    pygame.mixer.music.play()
 
 @app.route('/logout')
 @login_required
