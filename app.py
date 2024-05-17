@@ -145,7 +145,7 @@ def excluir_intervalo(agenda_id):
 def check_schedule():
     with app.app_context():
         while True:
-            # Verifica a hora atual
+            # hora atual
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
             current_day = now.strftime("%A")  # Obtém o dia da semana atual
@@ -155,8 +155,11 @@ def check_schedule():
 
             # Consulta o banco de dados para verificar se há agendamentos
             schedules = Schedule.query.all()
+            print("Número de agendamentos encontrados:", len(schedules))  # Mensagem de depuração
             for schedule in schedules:
                 schedule_day = translate_day(schedule.day)  # Traduz o dia agendado
+                print("Dia do agendamento:", schedule_day)  # Mensagem de depuração
+                print("Hora do agendamento:", schedule.start_time.strftime("%H:%M:%S"))  # Mensagem de depuração
                 if schedule_day == current_day and schedule.start_time.strftime("%H:%M:%S") == current_time:
                     # Reproduz o áudio associado ao agendamento
                     print("Hora do agendamento encontrada:", schedule.start_time.strftime("%H:%M:%S"))
