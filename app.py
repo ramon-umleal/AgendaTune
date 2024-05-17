@@ -142,6 +142,17 @@ def excluir_intervalo(agenda_id):
             flash('Intervalo não encontrado.', 'error')
     return redirect(url_for('cadastrar_intervalos'))
 
+
+def play_audio(audio_path):
+    try:
+        print("Tentando reproduzir áudio:", audio_path)
+        pygame.mixer.music.load(audio_path)
+        pygame.mixer.music.play()
+        print("Áudio reproduzido com sucesso!")
+    except Exception as e:
+        print("Erro ao reproduzir áudio:", str(e))
+
+
 def check_schedule():
     with app.app_context():
         while True:
@@ -172,9 +183,7 @@ def check_schedule():
 schedule_thread = threading.Thread(target=check_schedule)
 schedule_thread.start()
 
-def play_audio(audio_path):
-    pygame.mixer.music.load(audio_path)
-    pygame.mixer.music.play()
+
 
 @app.route('/logout')
 @login_required
